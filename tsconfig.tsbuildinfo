@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/vite-env.d.ts","./src/router/index.ts","./src/stores/words.ts","./src/app.vue","./src/components/worditem.vue","./src/views/quizview.vue","./src/views/wordbookview.vue"],"version":"5.6.3"}
