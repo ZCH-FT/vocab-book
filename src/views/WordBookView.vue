@@ -1,12 +1,12 @@
 <template>
     <h1>我的单词本</h1>
     <div class="input-row">
-        <input 
+        <el-input 
         v-model="newen"
         placeholder="输入英文"
         @keyup.enter = "addword"
         />
-        <input
+        <el-input
         v-model="newzh"
         placeholder="输入中文，点回车或添加"
         @keyup.enter = "addword"
@@ -80,7 +80,7 @@ function toggleword(id: number) {
     gap:var(--space-sm);
     margin-bottom:var(--space-md);
 }
-.input-row input {
+.input-row el-input {
     flex:1;
 }
 .filter-row {

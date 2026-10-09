@@ -1,16 +1,16 @@
 <template>
     <h1>单词测验</h1>
-    <button v-if="words.length !== 0" @click="get_testword">开始测试</button>
+    <el-button type="primary" v-if="words.length !== 0" @click="get_testword">开始测试</el-button>
     <div v-if="random_en">
         <p class="quiz-word">{{ random_en }}</p>
         <div class="input-row">
-        <input
+        <el-input
         v-model="match_zh"
         placeholder="请输入对应的中文"
         @keyup.enter="match_testword"
         />
-        <button @click="match_testword">核对</button>
-        <button @click="get_testword">下一个</button>
+        <el-button type="primary" @click="match_testword">核对</el-button>
+        <el-button @click="get_testword">下一个</el-button>
         </div>
         <div v-if="match_ed">
             <p :class="match_foolean ? 'ok' : 'bad'">{{ match_foolean ? '正确' : '错误，请重试' }}</p>
@@ -66,7 +66,7 @@ function match_testword() {
     gap:var(--space-sm);
     margin-bottom:var(--space-md);
 }
-.input-row input {
+.input-row el-input {
     flex:1;
 }
 h1 {

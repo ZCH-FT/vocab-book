@@ -11,7 +11,7 @@ const emit = defineEmits<{
     <li class="word-item" :class="{ mastered: word.mastered}">
         <input type="checkbox" :checked="word.mastered" @change="emit('toggle',word.id)"/>
         <span class="text">{{ word.en }}|{{ word.zh }}</span>
-        <button @click="emit('remove',word.id)">删除</button>
+        <el-button type="danger" @click="emit('remove',word.id)">删除</el-button>
     </li>
 </template>
 <style scoped>
