@@ -11,7 +11,7 @@
         placeholder="输入中文，点回车或添加"
         @keyup.enter = "addword"
         />
-        <button @click="addword">添加</button>
+        <el-button type="primary" @click="addword">添加</el-button>
     </div>
     <p class="computed-count">
         共<strong>{{total}}</strong> 个 |
