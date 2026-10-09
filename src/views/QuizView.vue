@@ -66,7 +66,7 @@ function match_testword() {
     gap:var(--space-sm);
     margin-bottom:var(--space-md);
 }
-.input-row el-input {
+.input-row .el-input {
     flex:1;
 }
 h1 {
