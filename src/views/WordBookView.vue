@@ -19,9 +19,11 @@
         未掌握<strong>{{unmedCount}}</strong> 个
     </p>
     <div class="filter-row">
-        <button @click="filterType='all'" :class="{active: filterType==='all'}">全部</button>
-        <button @click="filterType='mastered'" :class="{active: filterType==='mastered'}">已掌握</button>
-        <button @click="filterType='unmastered'" :class="{active: filterType==='unmastered'}">未掌握</button>
+        <el-radio-group v-model="filterType">
+            <el-radio-button value="all">全部</el-radio-button>
+            <el-radio-button value="mastered">已掌握</el-radio-button>
+            <el-radio-button value="unmastered">未掌握</el-radio-button>
+        </el-radio-group>
     </div>
     <p v-if="filteredwords.length === 0">{{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词'}}</p>
     <ul v-else>
@@ -87,11 +89,6 @@ function toggleword(id: number) {
     display:flex;
     gap:var(--space-sm);
     margin-bottom:var(--space-md);
-}
-.filter-row button.active {
-    background:var(--color-primary);
-    border-color:var(--color-primary);
-    color:#fff;
 }
 ul {
     list-style:none;

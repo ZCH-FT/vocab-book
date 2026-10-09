@@ -9,7 +9,7 @@ const emit = defineEmits<{
 </script>
 <template>
     <li class="word-item" :class="{ mastered: word.mastered}">
-        <input type="checkbox" :checked="word.mastered" @change="emit('toggle',word.id)"/>
+        <el-checkbox :model-value="word.mastered" @change="emit('toggle',word.id)"/>
         <span class="text">{{ word.en }}|{{ word.zh }}</span>
         <el-button type="danger" @click="emit('remove',word.id)">删除</el-button>
     </li>
