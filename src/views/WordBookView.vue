@@ -31,7 +31,7 @@
     </ul>
 </template>
 <script setup lang="ts">
-import {ElMessage} from 'element-plus'
+import {ElMessage, ElMessageBox} from 'element-plus'
 import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
 import {words} from '../stores/words'
@@ -69,9 +69,19 @@ const filteredwords = computed(()=>{
         return words.value.filter((t)=>!t.mastered)
     }
 })
-function removeword(id: number) {
-    words.value = words.value.filter((t)=>t.id !==id)
-    ElMessage.success('已删除')
+async function removeword(id: number) {
+    try{
+        await ElMessageBox.confirm('确定要删除这个单词吗？', '提示',{
+            confirmButtonText: '删除',
+            cancelButtonText: '取消',
+            type: 'warning',
+            confirmButtonClass: 'el-button-danger'
+        })
+        words.value = words.value.filter((t)=>t.id !==id)
+        ElMessage.success('已删除')
+    } catch {
+
+    }
 }
 function toggleword(id: number) {
     const target = words.value.find((t)=>t.id === id)
