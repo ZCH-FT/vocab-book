@@ -27,8 +27,18 @@
     </div>
     <p v-if="filteredwords.length === 0">{{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词'}}</p>
     <ul v-else>
-        <wordItem v-for="word in filteredwords" :key="word.id" :word="word" @toggle="toggleword" @remove="removeword"/>
+        <wordItem v-for="word in filteredwords" :key="word.id" :word="word" @toggle="toggleword" @remove="removeword" @edit="openedit"/>
     </ul>
+    <el-dialog v-model="editVisible" title="编辑单词" width="400px">
+        <div class="edit-form">
+            <el-input v-model="editForm.en" placeholder="英文" />
+            <el-input v-model="editForm.zh" placeholder="中文" />
+        </div>
+        <template #footer>
+            <el-button @click="editVisible = false">取消</el-button>
+            <el-button type="primary" @click="saveedit">保存</el-button>
+        </template>
+    </el-dialog> 
 </template>
 <script setup lang="ts">
 import {ElMessage, ElMessageBox} from 'element-plus'
@@ -37,6 +47,8 @@ import wordItem from '../components/wordItem.vue'
 import {words} from '../stores/words'
 const newen = ref('')
 const newzh = ref('')
+const editVisible = ref(false)
+const editForm = ref({id: 0,en:'',zh:''}) 
 function addword() {
     const en = newen.value.trim()
     const zh = newzh.value.trim()
@@ -83,6 +95,34 @@ async function removeword(id: number) {
 
     }
 }
+function openedit(id: number) {
+    const target = words.value.find((t)=>t.id === id)
+    if(!target){
+        return
+    }
+    editForm.value = {id: target.id,en: target.en,zh: target.zh}
+    editVisible.value = true
+}
+function saveedit() {
+    const target = words.value.find((t)=>t.id === editForm.value.id)
+    if(!target){
+        return
+    }
+    if(!editForm.value.en|| !editForm.value.zh) {
+        ElMessage.warning('英文和中文都不能为空')
+        if(!editForm.value.en) {
+            editForm.value.en = ''
+        }
+        if(!editForm.value.zh) {
+            editForm.value.zh = ''
+        }
+        return
+    }
+    target.en = editForm.value.en.trim()
+    target.zh = editForm.value.zh.trim()
+    editVisible.value = false
+    ElMessage.success('已保存')
+}
 function toggleword(id: number) {
     const target = words.value.find((t)=>t.id === id)
     if(target){
@@ -118,5 +158,10 @@ ul {
 }
 h1 {
     margin-bottom:var(--space-lg);
+}
+.edit-form {
+    display:flex;
+    flex-direction:column;
+    gap:var(--space-sm);
 }
 </style>

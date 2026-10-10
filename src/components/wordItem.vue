@@ -5,12 +5,14 @@ defineProps<{
 const emit = defineEmits<{
     (e:'remove',id:number):void
     (e:'toggle',id:number):void
+    (e:'edit',id:number):void
 }>()
 </script>
 <template>
     <li class="word-item" :class="{ mastered: word.mastered}">
         <el-checkbox :model-value="word.mastered" @change="emit('toggle',word.id)"/>
         <span class="text">{{ word.en }}|{{ word.zh }}</span>
+        <el-button @click="emit('edit',word.id)">编辑</el-button>
         <el-button type="danger" @click="emit('remove',word.id)">删除</el-button>
     </li>
 </template>
