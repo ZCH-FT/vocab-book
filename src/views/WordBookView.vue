@@ -75,7 +75,7 @@ async function removeword(id: number) {
             confirmButtonText: '删除',
             cancelButtonText: '取消',
             type: 'warning',
-            confirmButtonClass: 'el-button-danger'
+            confirmButtonClass: 'el-button--danger'
         })
         words.value = words.value.filter((t)=>t.id !==id)
         ElMessage.success('已删除')
