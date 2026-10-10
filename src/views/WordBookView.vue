@@ -108,12 +108,12 @@ function saveedit() {
     if(!target){
         return
     }
-    if(!editForm.value.en|| !editForm.value.zh) {
+    if(!editForm.value.en.trim()|| !editForm.value.zh.trim()) {
         ElMessage.warning('英文和中文都不能为空')
-        if(!editForm.value.en) {
+        if(!editForm.value.en.trim()) {
             editForm.value.en = ''
         }
-        if(!editForm.value.zh) {
+        if(!editForm.value.zh.trim()) {
             editForm.value.zh = ''
         }
         return
