@@ -31,6 +31,7 @@
     </ul>
 </template>
 <script setup lang="ts">
+import {ElMessage} from 'element-plus'
 import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
 import {words} from '../stores/words'
@@ -40,6 +41,7 @@ function addword() {
     const en = newen.value.trim()
     const zh = newzh.value.trim()
     if(!en || !zh) {
+        ElMessage.warning('英文和中文都不能为空')
         if(!en) {
             newen.value = ''
         }
@@ -52,6 +54,7 @@ function addword() {
     words.value.push({ id: nextId, en: en, zh: zh, mastered: false})
     newen.value = ''
     newzh.value = ''
+    ElMessage.success('已添加')
 }
 const total = computed(()=>words.value.length)
 const medCount = computed(()=>words.value.filter((t)=>t.mastered).length)
@@ -68,6 +71,7 @@ const filteredwords = computed(()=>{
 })
 function removeword(id: number) {
     words.value = words.value.filter((t)=>t.id !==id)
+    ElMessage.success('已删除')
 }
 function toggleword(id: number) {
     const target = words.value.find((t)=>t.id === id)
