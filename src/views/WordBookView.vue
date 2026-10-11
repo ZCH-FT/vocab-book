@@ -41,7 +41,6 @@
     </el-dialog> 
 </template>
 <script setup lang="ts">
-import {ElMessage, ElMessageBox} from 'element-plus'
 import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
 import {words} from '../stores/words'
