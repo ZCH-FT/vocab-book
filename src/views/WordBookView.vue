@@ -48,7 +48,7 @@ const newen = ref('')
 const newzh = ref('')
 const editVisible = ref(false)
 const editForm = ref({id: 0,en:'',zh:''}) 
-function addword() {
+async function addword() {
     const en = newen.value.trim()
     const zh = newzh.value.trim()
     if(!en || !zh) {
@@ -61,8 +61,13 @@ function addword() {
         }
         return
     }
-    const nextId = words.value.length ? Math.max(...words.value.map((t)=>t.id)) + 1 : 1
-    words.value.push({ id: nextId, en: en, zh: zh, mastered: false})
+    const res = await fetch('http://localhost:8080/word/add',{
+        method: 'Post',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({en: en,zh: zh}),
+    })
+    const newword = await res.json()
+    words.value.push(newword)
     newen.value = ''
     newzh.value = ''
     ElMessage.success('已添加')
@@ -88,7 +93,8 @@ async function removeword(id: number) {
             type: 'warning',
             confirmButtonClass: 'el-button--danger'
         })
-        words.value = words.value.filter((t)=>t.id !==id)
+        await fetch(`http://localhost:8080/word/${id}`,{method: 'DELETE'})
+        words.value = words.value.filter((t)=>t.id !== id)
         ElMessage.success('已删除')
     } catch {
 
@@ -102,7 +108,7 @@ function openedit(id: number) {
     editForm.value = {id: target.id,en: target.en,zh: target.zh}
     editVisible.value = true
 }
-function saveedit() {
+async function saveedit() {
     const target = words.value.find((t)=>t.id === editForm.value.id)
     if(!target){
         return
@@ -117,15 +123,22 @@ function saveedit() {
         }
         return
     }
+    await fetch(`http://localhost:8080/word/${editForm.value.id}`,{
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({en: editForm.value.en.trim(), zh: editForm.value.zh.trim()}),
+    })
     target.en = editForm.value.en.trim()
     target.zh = editForm.value.zh.trim()
     editVisible.value = false
     ElMessage.success('已保存')
 }
-function toggleword(id: number) {
+async function toggleword(id: number) {
     const target = words.value.find((t)=>t.id === id)
     if(target){
-        target.mastered = !target.mastered
+    const newvalue = !target.mastered
+    await fetch(`http://localhost:8080/word/mastered/${id}?value=${newvalue}`,{method: 'PUT'})
+    target.mastered = newvalue
     }
 }
 </script>

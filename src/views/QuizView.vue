@@ -33,16 +33,18 @@ function get_testword() {
     match_foolean.value = false 
     match_zh.value = ''
 }
-function match_testword() {
+async function match_testword() {
     if(words.value[random_idex.value].zh === match_zh.value) {
         match_foolean.value = true
     } else {
         match_foolean.value = false
     }
     if(match_foolean.value === true && words.value[random_idex.value].mastered === false) {
+        await fetch(`http://localhost:8080/word/mastered/${words.value[random_idex.value].id}?value=true`, {method: 'PUT'})
         words.value[random_idex.value].mastered = true
     }
     if(match_foolean.value === false && words.value[random_idex.value].mastered === true) {
+        await fetch(`http://localhost:8080/word/mastered/${words.value[random_idex.value].id}?value=false`, {method: 'PUT'})
         words.value[random_idex.value].mastered = false
     }
     match_zh.value = ''
