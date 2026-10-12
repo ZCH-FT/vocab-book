@@ -62,7 +62,7 @@ async function addword() {
         return
     }
     const res = await fetch('http://localhost:8080/word/add',{
-        method: 'Post',
+        method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({en: en,zh: zh}),
     })
@@ -136,9 +136,9 @@ async function saveedit() {
 async function toggleword(id: number) {
     const target = words.value.find((t)=>t.id === id)
     if(target){
-    const newvalue = !target.mastered
-    await fetch(`http://localhost:8080/word/mastered/${id}?value=${newvalue}`,{method: 'PUT'})
-    target.mastered = newvalue
+        const newvalue = !target.mastered
+        await fetch(`http://localhost:8080/word/mastered/${id}?value=${newvalue}`,{method: 'PUT'})
+        target.mastered = newvalue
     }
 }
 </script>
