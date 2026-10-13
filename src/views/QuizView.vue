@@ -1,6 +1,6 @@
 <template>
     <h1>单词测验</h1>
-    <el-button type="primary" v-if="words.length !== 0" @click="get_testword">开始测试</el-button>
+    <el-button type="primary" v-if="wordsStore.words.length !== 0" @click="get_testword">开始测试</el-button>
     <div v-if="random_en">
         <p class="quiz-word">{{ random_en }}</p>
         <div class="input-row">
@@ -16,36 +16,35 @@
             <p :class="match_foolean ? 'ok' : 'bad'">{{ match_foolean ? '正确' : '错误，请重试' }}</p>
         </div>
     </div>
-    <p v-if="words.length === 0">无可测验单词，请返回添加</p>
+    <p v-if="wordsStore.words.length === 0">无可测验单词，请返回添加</p>
 </template>
 <script setup lang="ts">
-import {words} from '../stores/words'
+import {useWordsStore} from '../stores/words'
 import {ref} from 'vue'
+const wordsStore = useWordsStore()
 const random_idex = ref(-1)
 const random_en = ref('')
 const match_zh = ref('')
 const match_ed =ref(false)
 const match_foolean = ref(false)
 function get_testword() {
-    random_idex.value = Math.floor(Math.random()*words.value.length)
-    random_en.value = words.value[random_idex.value].en
+    random_idex.value = Math.floor(Math.random()*wordsStore.words.length)
+    random_en.value = wordsStore.words[random_idex.value].en
     match_ed.value = false
     match_foolean.value = false 
     match_zh.value = ''
 }
 async function match_testword() {
-    if(words.value[random_idex.value].zh === match_zh.value) {
+    if(wordsStore.words[random_idex.value].zh === match_zh.value) {
         match_foolean.value = true
     } else {
         match_foolean.value = false
     }
-    if(match_foolean.value === true && words.value[random_idex.value].mastered === false) {
-        await fetch(`http://localhost:8080/word/mastered/${words.value[random_idex.value].id}?value=true`, {method: 'PUT'})
-        words.value[random_idex.value].mastered = true
+    if(match_foolean.value === true && wordsStore.words[random_idex.value].mastered === false) {
+        await wordsStore.setmastered(wordsStore.words[random_idex.value].id, true)
     }
-    if(match_foolean.value === false && words.value[random_idex.value].mastered === true) {
-        await fetch(`http://localhost:8080/word/mastered/${words.value[random_idex.value].id}?value=false`, {method: 'PUT'})
-        words.value[random_idex.value].mastered = false
+    if(match_foolean.value === false && wordsStore.words[random_idex.value].mastered === true) {
+        await wordsStore.setmastered(wordsStore.words[random_idex.value].id, false)
     }
     match_zh.value = ''
     match_ed.value = true

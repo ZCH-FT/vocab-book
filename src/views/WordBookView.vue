@@ -43,7 +43,8 @@
 <script setup lang="ts">
 import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
-import {words} from '../stores/words'
+import {useWordsStore} from '../stores/words'
+const wordsStore = useWordsStore()
 const newen = ref('')
 const newzh = ref('')
 const editVisible = ref(false)
@@ -61,28 +62,22 @@ async function addword() {
         }
         return
     }
-    const res = await fetch('http://localhost:8080/word/add',{
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({en: en,zh: zh}),
-    })
-    const newword = await res.json()
-    words.value.push(newword)
+    await wordsStore.addword(en, zh)
     newen.value = ''
     newzh.value = ''
     ElMessage.success('已添加')
 }
-const total = computed(()=>words.value.length)
-const medCount = computed(()=>words.value.filter((t)=>t.mastered).length)
+const total = computed(()=>wordsStore.words.length)
+const medCount = computed(()=>wordsStore.words.filter((t)=>t.mastered).length)
 const unmedCount = computed(()=>total.value - medCount.value)
 const filterType = ref('all')
 const filteredwords = computed(()=>{
     if(filterType.value ==='all') {
-        return words.value
+        return wordsStore.words
     } else if(filterType.value === 'mastered') {
-        return words.value.filter((t)=>t.mastered)
+        return wordsStore.words.filter((t)=>t.mastered)
     } else {
-        return words.value.filter((t)=>!t.mastered)
+        return wordsStore.words.filter((t)=>!t.mastered)
     }
 })
 async function removeword(id: number) {
@@ -93,15 +88,14 @@ async function removeword(id: number) {
             type: 'warning',
             confirmButtonClass: 'el-button--danger'
         })
-        await fetch(`http://localhost:8080/word/${id}`,{method: 'DELETE'})
-        words.value = words.value.filter((t)=>t.id !== id)
+        await wordsStore.removeword(id)
         ElMessage.success('已删除')
     } catch {
 
     }
 }
 function openedit(id: number) {
-    const target = words.value.find((t)=>t.id === id)
+    const target = wordsStore.words.find((t)=>t.id === id)
     if(!target){
         return
     }
@@ -109,7 +103,7 @@ function openedit(id: number) {
     editVisible.value = true
 }
 async function saveedit() {
-    const target = words.value.find((t)=>t.id === editForm.value.id)
+    const target = wordsStore.words.find((t)=>t.id === editForm.value.id)
     if(!target){
         return
     }
@@ -123,22 +117,15 @@ async function saveedit() {
         }
         return
     }
-    await fetch(`http://localhost:8080/word/${editForm.value.id}`,{
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({en: editForm.value.en.trim(), zh: editForm.value.zh.trim()}),
-    })
-    target.en = editForm.value.en.trim()
-    target.zh = editForm.value.zh.trim()
+    await wordsStore.editword(editForm.value.id, editForm.value.en.trim(), editForm.value.zh.trim())
     editVisible.value = false
     ElMessage.success('已保存')
 }
 async function toggleword(id: number) {
-    const target = words.value.find((t)=>t.id === id)
+    const target = wordsStore.words.find((t)=>t.id === id)
     if(target){
         const newvalue = !target.mastered
-        await fetch(`http://localhost:8080/word/mastered/${id}?value=${newvalue}`,{method: 'PUT'})
-        target.mastered = newvalue
+        await wordsStore.setmastered(id, newvalue)
     }
 }
 </script>
