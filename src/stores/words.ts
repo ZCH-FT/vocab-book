@@ -11,14 +11,14 @@ export const useWordsStore = defineStore('words',()=>{
     const words = ref<Word[]>([])
     async function loadwords() {
         try{
-            const res = await fetch('${API}/word/list')
+            const res = await fetch(`${API}/word/list`)
             words.value = await res.json()
         } catch {
             console.error('加载单词失败：后端启动了吗？')
         }
     }
     async function addword(en: string, zh: string) {
-        const res = await fetch('${API}/word/add',{
+        const res = await fetch(`${API}/word/add`,{
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({en: en,zh: zh}),
