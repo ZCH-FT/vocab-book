@@ -172,6 +172,7 @@ async function toggleword(id: number) {
 ul {
     list-style:none;
     padding-left:0;
+    position:relative;
 }
 .computed-count {
     margin-bottom: var(--space-md);
@@ -212,6 +213,8 @@ h1 {
     transform:translateX(24px);
 }
 .list-leave-active {
+    position:absolute;
+    width:100%;
     transition:all 0.25s ease;
 }
 .list-move {
