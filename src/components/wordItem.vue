@@ -11,9 +11,12 @@ const emit = defineEmits<{
 <template>
     <li class="word-item" :class="{ mastered: word.mastered}">
         <el-checkbox :model-value="word.mastered" @change="emit('toggle',word.id)"/>
-        <span class="text">{{ word.en }}|{{ word.zh }}</span>
-        <el-button @click="emit('edit',word.id)">编辑</el-button>
-        <el-button type="danger" @click="emit('remove',word.id)">删除</el-button>
+        <div class="text">
+          <span class="en">{{ word.en }}</span>
+          <span class="zh">{{ word.zh }}</span>
+        </div>
+        <el-button text @click="emit('edit',word.id)">编辑</el-button>
+        <el-button text type="danger" @click="emit('remove',word.id)">删除</el-button>
     </li>
 </template>
 <style scoped>
@@ -27,8 +30,16 @@ const emit = defineEmits<{
   margin-bottom: var(--space-md);
 }
 .word-item .text {
-  flex: 1;
-  font-size: 16px;
+  flex:1;
+  display:flex;
+  gap:var(--space-sm);
+}
+.word-item .text .en {
+  font-size:16px;
+}
+.word-item .text .zh {
+  color:var(--color-text-muted);
+  font-size:14px;
 }
 .word-item.mastered .text {
   text-decoration: line-through;
