@@ -34,9 +34,9 @@
         </el-radio-group>
     </div>
     <p v-if="sortedwords.length === 0">{{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词'}}</p>
-    <ul v-else>
+    <TransitionGroup v-else name="list" tag="ul">
         <wordItem v-for="word in sortedwords" :key="word.id" :word="word" @toggle="toggleword" @remove="removeword" @edit="openedit"/>
-    </ul>
+    </TransitionGroup>
     <el-dialog v-model="editVisible" title="编辑单词" width="400px">
         <div class="edit-form">
             <el-input v-model="editForm.en" placeholder="英文" />
@@ -199,5 +199,22 @@ h1 {
 }
 .tools-row .el-select {
     width:150px;
+}
+.list-enter-from {
+    opacity:0;
+    transform:translateX(-24px);
+}
+.list-enter-active {
+    transition:all 0.25s ease;
+}
+.list-leave-to {
+    opacity:0;
+    transform:translateX(24px);
+}
+.list-leave-active {
+    transition:all 0.25s ease;
+}
+.list-move {
+    transition:transform 0.25s ease;
 }
 </style>
