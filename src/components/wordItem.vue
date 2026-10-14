@@ -29,6 +29,9 @@ const emit = defineEmits<{
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-md);
 }
+.word-item :hover {
+  border-color: var(--color-border);
+}
 .word-item .text {
   flex:1;
   display:flex;
