@@ -14,8 +14,8 @@
         <el-button type="primary" @click="addword">添加</el-button>
     </div>
     <p class="computed-count">
-        共<strong>{{total}}</strong> 个 .
-        已掌握<strong>{{medCount}}</strong> 个 .
+        共<strong>{{total}}</strong> 个 ·
+        已掌握<strong>{{medCount}}</strong> 个 ·
         未掌握<strong>{{unmedCount}}</strong> 个
     </p>
     <div class="tools-row">

@@ -29,7 +29,7 @@ const emit = defineEmits<{
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-md);
 }
-.word-item :hover {
+.word-item:hover {
   border-color: var(--color-border);
 }
 .word-item .text {
