@@ -1,5 +1,6 @@
 <template>
     <h1>单词测验</h1>
+    <p class="quiz-sub" v-if="wordsStore.words.length !== 0 && !random_en">随机抽取词表里的单词，检验你的掌握程度</p>
     <el-button type="primary" v-if="wordsStore.words.length !== 0" @click="get_testword">开始测试</el-button>
     <div v-if="random_en">
         <p class="quiz-word">{{ random_en }}</p>
@@ -16,11 +17,17 @@
             <p :class="match_foolean ? 'ok' : 'bad'">{{ match_foolean ? '正确' : '错误，请重试' }}</p>
         </div>
     </div>
-    <p v-if="wordsStore.words.length === 0">无可测验单词，请返回添加</p>
+    <div v-if="wordsStore.words.length === 0" class="empty-state">
+        <p class="empty-title">还没有可测验的单词</p>
+        <p class="empty-sub">先去单词本添加几个单词吧</p>
+        <el-button type="primary" @click="router.push('/')">去添加单词</el-button>
+    </div>
 </template>
 <script setup lang="ts">
+import {useRouter} from 'vue-router'
 import {useWordsStore} from '../stores/words'
 import {ref} from 'vue'
+const router = useRouter()
 const wordsStore = useWordsStore()
 const random_idex = ref(-1)
 const random_en = ref('')
@@ -71,6 +78,24 @@ async function match_testword() {
     flex:1;
 }
 h1 {
+    margin-bottom:var(--space-sm);
+}
+.quiz-sub {
+    color:var(--color-text-muted);
+    font-size:14px;
+    margin-bottom:var(--space-lg);
+}
+.empty-state {
+    text-align:center;
+    padding: var(--space-lg) 0;
+}
+.empty-state .empty-title {
+    font-size:18px;
+    margin-bottom:var(--space-sm);
+}
+.empty-state .empty-sub {
+    color:var(--color-text-muted);
+    font-size:14px;
     margin-bottom:var(--space-lg);
 }
 </style>

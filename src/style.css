@@ -55,3 +55,7 @@ button:focus-visible {
 h1,p,ul {
     margin:0;
 }
+h1 {
+    font-size: 32px;
+    font-weight: 500;
+}
