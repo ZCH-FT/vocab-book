@@ -12,7 +12,8 @@ export const useWordsStore = defineStore('words',()=>{
     async function loadwords() {
         try{
             const res = await fetch(`${API}/word/list`)
-            words.value = await res.json()
+            const result = await res.json()
+            words.value = result.data
         } catch {
             console.error('加载单词失败：后端启动了吗？')
         }
@@ -23,8 +24,8 @@ export const useWordsStore = defineStore('words',()=>{
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({en: en,zh: zh}),
         })
-        const newword = await res.json()
-        words.value.push(newword)
+        const result = await res.json()
+        words.value.push(result.data)
     }
     async function removeword(id: number) {
         await fetch(`${API}/word/${id}`,{
