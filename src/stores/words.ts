@@ -6,7 +6,7 @@ export interface Word {
     zh:string
     mastered:boolean
 }
-const API = import.meta.env.DEV ? 'http://localhost:8080':'https://4a57d89f.r8.cpolar.cn'
+const API = import.meta.env.DEV ? 'http://localhost:8080':'https://1ce10716.r30.cpolar.top'
 export const useWordsStore = defineStore('words',()=>{
     const words = ref<Word[]>([])
     async function loadwords() {
