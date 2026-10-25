@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
     word: {id: number; en: string;zh: string;mastered: boolean}
+    pending?: boolean
 }>()
 const emit = defineEmits<{
     (e:'remove',id:number):void
@@ -10,13 +11,13 @@ const emit = defineEmits<{
 </script>
 <template>
     <li class="word-item" :class="{ mastered: word.mastered}">
-        <el-checkbox :model-value="word.mastered" @change="emit('toggle',word.id)"/>
+        <el-checkbox :model-value="word.mastered" :disabled="pending" @change="emit('toggle',word.id)"/>
         <div class="text">
           <span class="en">{{ word.en }}</span>
           <span class="zh">{{ word.zh }}</span>
         </div>
-        <el-button text @click="emit('edit',word.id)">编辑</el-button>
-        <el-button text type="danger" @click="emit('remove',word.id)">删除</el-button>
+        <el-button text :disabled="pending" @click="emit('edit',word.id)">编辑</el-button>
+        <el-button text :disabled="pending" type="danger" @click="emit('remove',word.id)">删除</el-button>
     </li>
 </template>
 <style scoped>

@@ -11,7 +11,7 @@
         placeholder="输入中文，点回车或添加"
         @keyup.enter = "addword"
         />
-        <el-button type="primary" @click="addword">添加</el-button>
+        <el-button type="primary" :loading="wordsStore.adding" @click="addword">添加</el-button>
     </div>
     <template v-if="!wordsStore.loading && !wordsStore.loadError">
         <p class="computed-count">
@@ -47,7 +47,7 @@
         {{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词'}}
     </p>
     <TransitionGroup v-else name="list" tag="ul">
-        <wordItem v-for="word in sortedwords" :key="word.id" :word="word" @toggle="toggleword" @remove="removeword" @edit="openedit"/>
+        <wordItem v-for="word in sortedwords" :key="word.id" :word="word" :pending="wordsStore.isPending(word.id)" @toggle="toggleword" @remove="removeword" @edit="openedit"/>
     </TransitionGroup>
     <el-dialog v-model="editVisible" title="编辑单词" width="400px">
         <div class="edit-form">
@@ -56,7 +56,7 @@
         </div>
         <template #footer>
             <el-button @click="editVisible = false">取消</el-button>
-            <el-button type="primary" @click="saveedit">保存</el-button>
+            <el-button type="primary" :loading="wordsStore.isPending(editForm.id)" @click="saveedit">保存</el-button>
         </template>
     </el-dialog> 
 </template>
@@ -87,7 +87,10 @@ async function addword() {
         return
     }
     try{
-        await wordsStore.addword(en, zh)
+        const ok = await wordsStore.addword(en, zh)
+        if(!ok) {
+            return
+        }
         newen.value = ''
         newzh.value = ''    
         ElMessage.success('已添加')
@@ -138,7 +141,10 @@ async function removeword(id: number) {
         return
     }
     try {
-        await wordsStore.removeword(id)
+        const ok = await wordsStore.removeword(id)
+        if(!ok) {
+            return
+        }
         ElMessage.success('已删除')
     } catch (e) {
         showerror(e, '删除失败')
@@ -168,7 +174,10 @@ async function saveedit() {
         return
     }
     try{
-        await wordsStore.editword(editForm.value.id, editForm.value.en.trim(), editForm.value.zh.trim())
+        const ok = await wordsStore.editword(editForm.value.id, editForm.value.en.trim(), editForm.value.zh.trim())
+        if(!ok) {
+            return
+        }
         editVisible.value = false
         ElMessage.success('已保存')
     } catch (e) {

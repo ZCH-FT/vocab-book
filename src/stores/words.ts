@@ -11,6 +11,11 @@ export const useWordsStore = defineStore('words',()=>{
     const words = ref<Word[]>([])
     const loading = ref(false)
     const loadError = ref<string | null>(null)
+    const adding = ref(false)
+    const pendingIds = ref(new Set<number>())
+    function isPending(id: number) {
+        return pendingIds.value.has(id)
+    }
     async function loadwords() {    
         if(loading.value) {
             return
@@ -25,38 +30,74 @@ export const useWordsStore = defineStore('words',()=>{
             loading.value = false
         }
     }
-    async function addword(en: string, zh: string) {
-        const created = await request<Word>('/word/add',{
-            method: 'POST',
-            body: JSON.stringify({ en, zh})
-        })
-        words.value.push(created)
-    }
-    async function removeword(id: number) {
-        await request<void>(`/word/${id}`, {
-            method: 'DELETE'
-        })
-        words.value = words.value.filter((t)=>t.id !== id)
-    }
-    async function editword(id: number,en: string,zh: string) {
-        await request<void>(`/word/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ en, zh }),
-        })
-        const target = words.value.find((t)=>t.id === id)
-        if(target){
-            target.en = en
-            target.zh = zh
+    async function addword(en: string, zh: string): Promise<boolean> {
+        if(adding.value) {
+            return false
         }
-    }
-    async function setmastered(id: number,value: boolean) {
-        await request<void>(`/word/mastered/${id}?value=${value}`, { method: 'PUT' })
-        const target = words.value.find((t)=>t.id === id)
-        if(target) {
-            target.mastered = value
+        adding.value = true
+        try {
+            const created = await request<Word>('/word/add',{
+                method: 'POST',
+                body: JSON.stringify({ en, zh})
+            })
+            words.value.push(created)
+        } finally {
+            adding.value = false    
         }
+        return true
+    }
+    async function removeword(id: number): Promise<boolean> {
+        if(isPending(id)) {
+            return false
+        }
+        pendingIds.value.add(id)
+        try{
+            await request<void>(`/word/${id}`, {
+                method: 'DELETE'
+            })
+            words.value = words.value.filter((t)=>t.id !== id)
+        } finally {
+            pendingIds.value.delete(id)
+        }
+        return true
+    }
+    async function editword(id: number,en: string,zh: string): Promise<boolean> {
+        if(isPending(id)) {
+            return false
+        }
+        pendingIds.value.add(id)
+        try{
+            await request<void>(`/word/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ en, zh }),
+            })
+            const target = words.value.find((t)=>t.id === id)
+            if(target){
+                target.en = en
+                target.zh = zh
+            }
+        } finally {
+            pendingIds.value.delete(id)
+        }
+        return true
+    }
+    async function setmastered(id: number,value: boolean): Promise<boolean> {
+        if(isPending(id)) {
+            return false
+        }
+        pendingIds.value.add(id)
+        try {
+            await request<void>(`/word/mastered/${id}?value=${value}`, { method: 'PUT' })
+            const target = words.value.find((t)=>t.id === id)
+            if(target) {
+                target.mastered = value
+            }
+        } finally {
+            pendingIds.value.delete(id)
+        }
+        return true
     }
     loadwords()
 
-    return {words,loadwords,addword,removeword,editword,setmastered,loading,loadError}
+    return {words,loadwords,addword,removeword,editword,setmastered,loading,loadError,adding,isPending}
 })
