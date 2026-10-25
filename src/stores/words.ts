@@ -6,38 +6,42 @@ export interface Word {
     zh:string
     mastered:boolean
 }
-const API = import.meta.env.DEV ? 'http://localhost:8080':'https://1ce10716.r30.cpolar.top'
+import {request, ApiError} from '../api/http'
 export const useWordsStore = defineStore('words',()=>{
     const words = ref<Word[]>([])
-    async function loadwords() {
-        try{
-            const res = await fetch(`${API}/word/list`)
-            const result = await res.json()
-            words.value = result.data
-        } catch {
-            console.error('加载单词失败：后端启动了吗？')
+    const loading = ref(false)
+    const loadError = ref<string | null>(null)
+    async function loadwords() {    
+        if(loading.value) {
+            return
+        }
+        loading.value = true
+        loadError.value = null
+        try {
+            words.value = await request<Word[]>('/word/list')
+        } catch (e) {
+            loadError.value = e instanceof ApiError ? e.message : '加载失败'
+        } finally {
+            loading.value = false
         }
     }
     async function addword(en: string, zh: string) {
-        const res = await fetch(`${API}/word/add`,{
+        const created = await request<Word>('/word/add',{
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({en: en,zh: zh}),
+            body: JSON.stringify({ en, zh})
         })
-        const result = await res.json()
-        words.value.push(result.data)
+        words.value.push(created)
     }
     async function removeword(id: number) {
-        await fetch(`${API}/word/${id}`,{
-            method: 'DELETE',
+        await request<void>(`/word/${id}`, {
+            method: 'DELETE'
         })
         words.value = words.value.filter((t)=>t.id !== id)
     }
     async function editword(id: number,en: string,zh: string) {
-        await fetch(`${API}/word/${id}`,{
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({en: en,zh: zh}),
+        await request<void>(`/word/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ en, zh }),
         })
         const target = words.value.find((t)=>t.id === id)
         if(target){
@@ -46,9 +50,7 @@ export const useWordsStore = defineStore('words',()=>{
         }
     }
     async function setmastered(id: number,value: boolean) {
-        await fetch(`${API}/word/mastered/${id}?value=${value}`,{
-            method: 'PUT',
-        })
+        await request<void>(`/word/mastered/${id}?value=${value}`, { method: 'PUT' })
         const target = words.value.find((t)=>t.id === id)
         if(target) {
             target.mastered = value
@@ -56,5 +58,5 @@ export const useWordsStore = defineStore('words',()=>{
     }
     loadwords()
 
-    return {words,loadwords,addword,removeword,editword,setmastered}
+    return {words,loadwords,addword,removeword,editword,setmastered,loading,loadError}
 })

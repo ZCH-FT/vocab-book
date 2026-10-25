@@ -13,27 +13,39 @@
         />
         <el-button type="primary" @click="addword">添加</el-button>
     </div>
-    <p class="computed-count">
-        共<strong>{{total}}</strong> 个 ·
-        已掌握<strong>{{medCount}}</strong> 个 ·
-        未掌握<strong>{{unmedCount}}</strong> 个
+    <template v-if="!wordsStore.loading && !wordsStore.loadError">
+        <p class="computed-count">
+            共<strong>{{total}}</strong> 个 ·
+            已掌握<strong>{{medCount}}</strong> 个 ·
+            未掌握<strong>{{unmedCount}}</strong> 个
+        </p>
+        <div class="tools-row">
+            <el-input v-model="searchText" placeholder="搜索英文或中文" clearable />
+            <el-select v-model="sortType">
+                <el-option label="默认排序" value="default"></el-option>
+                <el-option label="英文 A → Z" value="en-asc"></el-option>
+                <el-option label="英文 Z → A" value="en-desc"></el-option>
+            </el-select>
+        </div>
+        <div class="filter-row">
+            <el-radio-group v-model="filterType">
+                <el-radio-button value="all">全部</el-radio-button>
+                <el-radio-button value="mastered">已掌握</el-radio-button>
+                <el-radio-button value="unmastered">未掌握</el-radio-button>
+            </el-radio-group>
+        </div>
+    </template>
+    <div v-if="wordsStore.loading" class="state-block">
+        <el-skeleton :rows="3" animated />
+    </div>
+    <div v-else-if="wordsStore.loadError" class="state-block">
+        <p class="state-title">加载失败</p>
+        <p class="state-sub">{{ wordsStore.loadError }}</p>
+        <el-button type="primary" @click="wordsStore.loadwords">重试</el-button>
+    </div>
+    <p v-else-if="sortedwords.length === 0">
+        {{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词'}}
     </p>
-    <div class="tools-row">
-        <el-input v-model="searchText" placeholder="搜索英文或中文" clearable />
-        <el-select v-model="sortType">
-            <el-option label="默认排序" value="default"></el-option>
-            <el-option label="英文 A → Z" value="en-asc"></el-option>
-            <el-option label="英文 Z → A" value="en-desc"></el-option>
-        </el-select>
-    </div>
-    <div class="filter-row">
-        <el-radio-group v-model="filterType">
-            <el-radio-button value="all">全部</el-radio-button>
-            <el-radio-button value="mastered">已掌握</el-radio-button>
-            <el-radio-button value="unmastered">未掌握</el-radio-button>
-        </el-radio-group>
-    </div>
-    <p v-if="sortedwords.length === 0">{{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词'}}</p>
     <TransitionGroup v-else name="list" tag="ul">
         <wordItem v-for="word in sortedwords" :key="word.id" :word="word" @toggle="toggleword" @remove="removeword" @edit="openedit"/>
     </TransitionGroup>
@@ -52,11 +64,16 @@
 import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
 import {useWordsStore} from '../stores/words'
+import {ApiError} from '../api/http'
+import { te } from 'element-plus/lib/locales.js'
 const wordsStore = useWordsStore()
 const newen = ref('')
 const newzh = ref('')
 const editVisible = ref(false)
 const editForm = ref({id: 0,en:'',zh:''}) 
+function showerror(e: unknown, fallback: string) {
+    ElMessage.error(e instanceof ApiError ? e.message : fallback)
+}
 async function addword() {
     const en = newen.value.trim()
     const zh = newzh.value.trim()
@@ -70,10 +87,14 @@ async function addword() {
         }
         return
     }
-    await wordsStore.addword(en, zh)
-    newen.value = ''
-    newzh.value = ''
-    ElMessage.success('已添加')
+    try{
+        await wordsStore.addword(en, zh)
+        newen.value = ''
+        newzh.value = ''    
+        ElMessage.success('已添加')
+    } catch(e) {
+        showerror(e, '添加失败')
+    }
 }
 const total = computed(()=>wordsStore.words.length)
 const medCount = computed(()=>wordsStore.words.filter((t)=>t.mastered).length)
@@ -107,17 +128,21 @@ const sortedwords = computed(()=>{
     return list
 })
 async function removeword(id: number) {
-    try{
+    try {
         await ElMessageBox.confirm('确定要删除这个单词吗？', '提示',{
             confirmButtonText: '删除',
             cancelButtonText: '取消',
             type: 'warning',
             confirmButtonClass: 'el-button--danger'
         })
+    } catch {
+        return
+    }
+    try {
         await wordsStore.removeword(id)
         ElMessage.success('已删除')
-    } catch {
-
+    } catch (e) {
+        showerror(e, '删除失败')
     }
 }
 function openedit(id: number) {
@@ -143,16 +168,24 @@ async function saveedit() {
         }
         return
     }
-    await wordsStore.editword(editForm.value.id, editForm.value.en.trim(), editForm.value.zh.trim())
-    editVisible.value = false
-    ElMessage.success('已保存')
+    try{
+        await wordsStore.editword(editForm.value.id, editForm.value.en.trim(), editForm.value.zh.trim())
+        editVisible.value = false
+        ElMessage.success('已保存')
+    } catch (e) {
+        showerror(e, '保存失败')
+    }
 }
 async function toggleword(id: number) {
     const target = wordsStore.words.find((t)=>t.id === id)
     if(target){
         const newvalue = !target.mastered
-        await wordsStore.setmastered(id, newvalue)
-    }
+        try {
+            await wordsStore.setmastered(id, newvalue)
+        } catch (e) {
+            showerror(e, '更新失败')
+        }
+    } 
 }
 </script>
 <style scoped>
@@ -222,4 +255,18 @@ h1 {
         flex-direction:column;
     }
 }
+.state-block {
+    padding: var(--space-lg) 0;
+    text-align: center;
+}
+.state-title {
+    font-size: 16px;
+    margin-bottom: var(--space-sm);
+}
+.state-sub {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-md);
+}
+
 </style>
