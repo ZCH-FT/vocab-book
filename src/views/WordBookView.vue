@@ -65,7 +65,6 @@ import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
 import {useWordsStore} from '../stores/words'
 import {ApiError} from '../api/http'
-import { te } from 'element-plus/lib/locales.js'
 const wordsStore = useWordsStore()
 const newen = ref('')
 const newzh = ref('')
