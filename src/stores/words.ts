@@ -15,7 +15,7 @@ export const useWordsStore = defineStore('words',()=>{
     const pendingIds = ref(new Set<number>())
     function isPending(id: number) {
         return pendingIds.value.has(id)
-    }
+    }   
     async function loadwords() {    
         if(loading.value) {
             return
@@ -85,13 +85,18 @@ export const useWordsStore = defineStore('words',()=>{
         if(isPending(id)) {
             return false
         }
+        const target = words.value.find((t)=>t.id === id)
+        if(!target) {
+            return false
+        }
+        const prev = target.mastered
         pendingIds.value.add(id)
+        target.mastered = value
         try {
             await request<void>(`/word/mastered/${id}?value=${value}`, { method: 'PUT' })
-            const target = words.value.find((t)=>t.id === id)
-            if(target) {
-                target.mastered = value
-            }
+        } catch (e){
+            target.mastered = prev
+            throw e
         } finally {
             pendingIds.value.delete(id)
         }
