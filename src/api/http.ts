@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.DEV ? 'http://localhost:8080' : 'https://frp-aim.com:43085'
+const BASE_URL = import.meta.env.DEV ? 'http://localhost:8080' : 'https://fun.u3812671.nyat.app:36101'
 export type ApiErrorKind = 'network' | 'http' | 'business' | 'parse'
 
 export class ApiError extends Error {
