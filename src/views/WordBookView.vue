@@ -64,15 +64,12 @@
 import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
 import {useWordsStore} from '../stores/words'
-import {ApiError} from '../api/http'
+import {showError} from '../utils/error'
 const wordsStore = useWordsStore()
 const newen = ref('')
 const newzh = ref('')
 const editVisible = ref(false)
 const editForm = ref({id: 0,en:'',zh:''}) 
-function showerror(e: unknown, fallback: string) {
-    ElMessage.error(e instanceof ApiError ? e.message : fallback)
-}
 async function addword() {
     const en = newen.value.trim()
     const zh = newzh.value.trim()
@@ -95,7 +92,7 @@ async function addword() {
         newzh.value = ''    
         ElMessage.success('已添加')
     } catch(e) {
-        showerror(e, '添加失败')
+        showError(e, '添加失败')
     }
 }
 const total = computed(()=>wordsStore.words.length)
@@ -147,7 +144,7 @@ async function removeword(id: number) {
         }
         ElMessage.success('已删除')
     } catch (e) {
-        showerror(e, '删除失败')
+        showError(e, '删除失败')
     }
 }
 function openedit(id: number) {
@@ -181,7 +178,7 @@ async function saveedit() {
         editVisible.value = false
         ElMessage.success('已保存')
     } catch (e) {
-        showerror(e, '保存失败')
+        showError(e, '保存失败')
     }
 }
 async function toggleword(id: number) {
@@ -191,7 +188,7 @@ async function toggleword(id: number) {
         try {
             await wordsStore.setmastered(id, newvalue)
         } catch (e) {
-            showerror(e, '更新失败')
+            showError(e, '更新失败')
         }
     } 
 }

@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import {useRouter} from 'vue-router'
 import {useWordsStore} from '../stores/words'
-import {ApiError} from '../api/http'
+import {showError} from '../utils/error'
 import {ref} from 'vue'
 const router = useRouter()
 const wordsStore = useWordsStore()
@@ -49,9 +49,6 @@ const random_en = ref('')
 const match_zh = ref('')
 const match_ed =ref(false)
 const match_foolean = ref(false)
-function showerror(e: unknown, fallback: string) {
-    ElMessage.error(e instanceof ApiError ? e.message : fallback)
-}
 function get_testword() {
     if (wordsStore.words.length === 0) return
     random_idex.value = Math.floor(Math.random()*wordsStore.words.length)
@@ -70,14 +67,14 @@ async function match_testword() {
         try {
             await wordsStore.setmastered(wordsStore.words[random_idex.value].id, true)
         } catch (e) {
-            showerror(e, '更新失败')
+            showError(e, '更新失败')
         }
     }
     if(match_foolean.value === false && wordsStore.words[random_idex.value].mastered === true) {
         try {
             await wordsStore.setmastered(wordsStore.words[random_idex.value].id, false)
         } catch (e) {
-            showerror(e, '更新失败')
+            showError(e, '更新失败')
         }
     }
     match_zh.value = ''
