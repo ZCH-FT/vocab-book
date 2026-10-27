@@ -50,12 +50,19 @@ export const useWordsStore = defineStore('words',()=>{
         if(isPending(id)) {
             return false
         }
+        const index = words.value.findIndex(t => t.id === id)
+        if(index === -1) {
+            return false
+        }
+        const removed = words.value.splice(index, 1)[0]
         pendingIds.value.add(id)
         try{
             await request<void>(`/word/${id}`, {
                 method: 'DELETE'
             })
-            words.value = words.value.filter((t)=>t.id !== id)
+        } catch (e) {
+            words.value.splice(index, 0 , removed)
+            throw e
         } finally {
             pendingIds.value.delete(id)
         }
