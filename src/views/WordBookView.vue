@@ -35,20 +35,14 @@
             </el-radio-group>
         </div>
     </template>
-    <div v-if="wordsStore.loading" class="state-block">
-        <el-skeleton :rows="3" animated />
-    </div>
-    <div v-else-if="wordsStore.loadError" class="state-block">
-        <p class="state-title">加载失败</p>
-        <p class="state-sub">{{ wordsStore.loadError }}</p>
-        <el-button type="primary" @click="wordsStore.loadwords">重试</el-button>
-    </div>
-    <p v-else-if="sortedwords.length === 0">
-        {{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词'}}
-    </p>
-    <TransitionGroup v-else name="list" tag="ul">
-        <wordItem v-for="word in sortedwords" :key="word.id" :word="word" :pending="wordsStore.isPending(word.id)" @toggle="toggleword" @remove="removeword" @edit="openedit"/>
-    </TransitionGroup>
+    <AsyncState :loading="wordsStore.loading" :error="wordsStore.loadError" @retry="wordsStore.loadwords()">
+        <p v-if="sortedwords.length === 0">
+            {{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词' }}
+        </p>
+        <TransitionGroup v-else name="list" tag="ul">
+            <wordItem v-for="word in sortedwords" :key="word.id" :word="word" :pending="wordsStore.isPending(word.id)" @toggle="toggleword" @remove="removeword" @edit="openedit"/>
+        </TransitionGroup>
+    </AsyncState>
     <el-dialog v-model="editVisible" title="编辑单词" width="400px">
         <div class="edit-form">
             <el-input v-model="editForm.en" placeholder="英文" />
@@ -63,6 +57,7 @@
 <script setup lang="ts">
 import { ref,computed } from 'vue'
 import wordItem from '../components/wordItem.vue'
+import AsyncState from '../components/AsyncState.vue'
 import {useWordsStore} from '../stores/words'
 import {showError} from '../utils/error'
 const wordsStore = useWordsStore()
@@ -259,19 +254,6 @@ h1 {
     .input-row {
         flex-direction:column;
     }
-}
-.state-block {
-    padding: var(--space-lg) 0;
-    text-align: center;
-}
-.state-title {
-    font-size: 16px;
-    margin-bottom: var(--space-sm);
-}
-.state-sub {
-    font-size: 14px;
-    color: var(--color-text-muted);
-    margin-bottom: var(--space-md);
 }
 
 </style>

@@ -1,16 +1,7 @@
 <template>
     <h1>单词测验</h1>
-    <template v-if="wordsStore.loading">
-        <el-skeleton :rows="3" animated />
-    </template>
-    <template v-else-if="wordsStore.loadError">
-        <div class="state-block">
-            <p class="state-title">加载失败</p>
-            <p class="state-sub">{{ wordsStore.loadError }}</p>
-            <el-button type="primary" @click="wordsStore.loadwords()">重试</el-button>
-        </div>
-    </template>
-    <template v-else-if="wordsStore.words.length === 0">
+    <AsyncState :loading="wordsStore.loading" :error="wordsStore.loadError" @retry="wordsStore.loadwords()">
+    <template v-if="wordsStore.words.length === 0">
         <div class="empty-state">
             <p class="empty-title">还没有可测验的单词</p>
             <p class="empty-sub">先去单词本添加几个单词吧</p>
@@ -18,8 +9,8 @@
         </div>
     </template>
     <template v-else>
-        <p class="quiz-sub" v-if="wordsStore.words.length !== 0 && !random_en">随机抽取词表里的单词，检验你的掌握程度</p>
-        <el-button type="primary" v-if="wordsStore.words.length !== 0" @click="get_testword">开始测试</el-button>
+        <p class="quiz-sub" v-if="!random_en">随机抽取词表里的单词，检验你的掌握程度</p>
+        <el-button type="primary" v-if="!random_en" @click="get_testword">开始测试</el-button>
         <div v-if="random_en">
             <p class="quiz-word">{{ random_en }}</p>
             <div class="input-row">
@@ -36,12 +27,14 @@
             </div>
         </div>
     </template>
+    </AsyncState>
 </template>
 <script setup lang="ts">
 import {useRouter} from 'vue-router'
 import {useWordsStore} from '../stores/words'
 import {showError} from '../utils/error'
 import {ref} from 'vue'
+import AsyncState from '../components/AsyncState.vue'
 const router = useRouter()
 const wordsStore = useWordsStore()
 const random_idex = ref(-1)
@@ -121,19 +114,6 @@ h1 {
     color:var(--color-text-muted);
     font-size:14px;
     margin-bottom:var(--space-lg);
-}
-.state-block {
-    padding: var(--space-lg) 0;
-    text-align: center;
-}
-.state-title {
-    font-size: 16px;
-    margin-bottom: var(--space-sm);
-}
-.state-sub {
-    font-size: 14px;
-    color: var(--color-text-muted);
-    margin-bottom: var(--space-md);
 }
 
 </style>

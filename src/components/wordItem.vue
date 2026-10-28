@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type {Word} from '../types'
 defineProps<{
-    word: {id: number; en: string;zh: string;mastered: boolean}
+    word: Word
     pending?: boolean
 }>()
 const emit = defineEmits<{

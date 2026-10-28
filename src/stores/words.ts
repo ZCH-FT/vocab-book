@@ -1,11 +1,6 @@
 import {ref} from 'vue'
 import {defineStore} from 'pinia'
-export interface Word {
-    id:number
-    en:string
-    zh:string
-    mastered:boolean
-}
+import type {Word} from '../types'
 import {request, ApiError} from '../api/http'
 export const useWordsStore = defineStore('words',()=>{
     const words = ref<Word[]>([])
