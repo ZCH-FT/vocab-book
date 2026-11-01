@@ -86,7 +86,7 @@ async function addword() {
         if(!created) {
             return
         }
-        addForm.value = {en: '', zh: ''}   
+        addFormRef.value?.resetFields()
         ElMessage.success('已添加')
     } catch(e) {
         showError(e, '添加失败')
