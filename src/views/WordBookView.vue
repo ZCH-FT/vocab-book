@@ -1,18 +1,24 @@
 <template>
     <h1>我的单词本</h1>
-    <div class="input-row">
-        <el-input 
-        v-model="newen"
-        placeholder="输入英文"
-        @keyup.enter = "addword"
-        />
-        <el-input
-        v-model="newzh"
-        placeholder="输入中文，点回车或添加"
-        @keyup.enter = "addword"
-        />
-        <el-button type="primary" :loading="wordsStore.adding" @click="addword">添加</el-button>
-    </div>
+    <el-form :inline="true" :model="addForm" :rules="rules" ref="addFormRef" class="input-row">
+        <el-form-item prop="en">
+            <el-input 
+            v-model="addForm.en"
+            placeholder="输入英文"
+            @keyup.enter = "addword"
+            />
+        </el-form-item>
+        <el-form-item prop="zh">
+            <el-input
+            v-model="addForm.zh"
+            placeholder="输入中文，点回车或添加"
+            @keyup.enter = "addword"
+            />
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" :loading="wordsStore.adding" @click="addword">添加</el-button>
+        </el-form-item>
+    </el-form>
     <template v-if="!wordsStore.loading && !wordsStore.loadError">
         <p class="computed-count">
             共<strong>{{total}}</strong> 个 ·
@@ -60,31 +66,27 @@ import wordItem from '../components/wordItem.vue'
 import AsyncState from '../components/AsyncState.vue'
 import {useWordsStore} from '../stores/words'
 import {showError} from '../utils/error'
+import type {FormInstance, FormRules} from 'element-plus'
 const wordsStore = useWordsStore()
-const newen = ref('')
-const newzh = ref('')
+const addForm = ref({ en: '', zh: ''})
+const addFormRef = ref<FormInstance>()
 const editVisible = ref(false)
-const editForm = ref({id: 0,en:'',zh:''}) 
+const editForm = ref({id: 0,en:'',zh:''})
+const rules: FormRules = {
+    en: [{required: true, message: '请输入英文', trigger: 'blur'}],
+    zh: [{required: true, message: '请输入中文', trigger: 'blur'}],
+} 
 async function addword() {
-    const en = newen.value.trim()
-    const zh = newzh.value.trim()
-    if(!en || !zh) {
-        ElMessage.warning('英文和中文都不能为空')
-        if(!en) {
-            newen.value = ''
-        }
-        if(!zh) {
-            newzh.value = ''           
-        }
+    const ok = await addFormRef.value?.validate().catch(()=>false)
+    if(!ok) {
         return
     }
     try{
-        const ok = await wordsStore.addword(en, zh)
-        if(!ok) {
+        const created = await wordsStore.addword(addForm.value.en, addForm.value.zh)
+        if(!created) {
             return
         }
-        newen.value = ''
-        newzh.value = ''    
+        addForm.value = {en: '', zh: ''}   
         ElMessage.success('已添加')
     } catch(e) {
         showError(e, '添加失败')
@@ -192,10 +194,15 @@ async function toggleword(id: number) {
 .input-row {
     display:flex;
     gap:var(--space-sm);
-    margin-bottom:var(--space-md);
+    margin-bottom:var(--space-lg);
 }
-.input-row .el-input {
+.input-row .el-form-item {
     flex:1;
+    margin-right: 0; 
+    margin-bottom: 0;
+}
+.input-row .el-form-item:last-child {
+    flex: 0 0 auto;     
 }
 .filter-row {
     display:flex;
@@ -255,5 +262,4 @@ h1 {
         flex-direction:column;
     }
 }
-
 </style>
