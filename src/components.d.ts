@@ -25,6 +25,7 @@ declare module 'vue' {
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    WordForm: typeof import('./components/WordForm.vue')['default']
     WordItem: typeof import('./components/wordItem.vue')['default']
   }
 }

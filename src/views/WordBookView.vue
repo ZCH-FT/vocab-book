@@ -1,24 +1,6 @@
 <template>
     <h1>我的单词本</h1>
-    <el-form :inline="true" :model="addForm" :rules="rules" ref="addFormRef" class="input-row">
-        <el-form-item prop="en">
-            <el-input 
-            v-model="addForm.en"
-            placeholder="输入英文"
-            @keyup.enter = "addword"
-            />
-        </el-form-item>
-        <el-form-item prop="zh">
-            <el-input
-            v-model="addForm.zh"
-            placeholder="输入中文，点回车或添加"
-            @keyup.enter = "addword"
-            />
-        </el-form-item>
-        <el-form-item>
-            <el-button type="primary" :loading="wordsStore.adding" @click="addword">添加</el-button>
-        </el-form-item>
-    </el-form>
+    <WordForm v-model="addForm" :loading="wordsStore.adding" submit-text="添加" @submit="addword" />
     <template v-if="!wordsStore.loading && !wordsStore.loadError">
         <p class="computed-count">
             共<strong>{{total}}</strong> 个 ·
@@ -50,14 +32,13 @@
         </TransitionGroup>
     </AsyncState>
     <el-dialog v-model="editVisible" title="编辑单词" width="400px">
-        <div class="edit-form">
-            <el-input v-model="editForm.en" placeholder="英文" />
-            <el-input v-model="editForm.zh" placeholder="中文" />
-        </div>
-        <template #footer>
-            <el-button @click="editVisible = false">取消</el-button>
-            <el-button type="primary" :loading="wordsStore.isPending(editForm.id)" @click="saveedit">保存</el-button>
-        </template>
+        <WordForm
+        v-model="editForm"
+        :loading="wordsStore.isPending(editId)"
+        layout="column"
+        submit-text="保存"
+        @submit="saveedit"
+    />
     </el-dialog> 
 </template>
 <script setup lang="ts">
@@ -66,30 +47,22 @@ import wordItem from '../components/wordItem.vue'
 import AsyncState from '../components/AsyncState.vue'
 import {useWordsStore} from '../stores/words'
 import {showError} from '../utils/error'
-import type {FormInstance, FormRules} from 'element-plus'
+import WordForm from '../components/WordForm.vue'
 const wordsStore = useWordsStore()
 const addForm = ref({ en: '', zh: ''})
-const addFormRef = ref<FormInstance>()
+const editForm = ref({en:'',zh:''})
+const editId = ref(0)
 const editVisible = ref(false)
-const editForm = ref({id: 0,en:'',zh:''})
-const rules: FormRules = {
-    en: [{required: true, message: '请输入英文', trigger: 'blur'}],
-    zh: [{required: true, message: '请输入中文', trigger: 'blur'}],
-} 
 async function addword() {
-    const ok = await addFormRef.value?.validate().catch(()=>false)
-    if(!ok) {
-        return
-    }
     try{
         const created = await wordsStore.addword(addForm.value.en, addForm.value.zh)
         if(!created) {
             return
         }
-        addFormRef.value?.resetFields()
+        addForm.value = { en: '', zh: '' }
         ElMessage.success('已添加')
-    } catch(e) {
-        showError(e, '添加失败')
+    } catch(e) {            
+        showError(e, '添加失败')                
     }
 }
 const total = computed(()=>wordsStore.words.length)
@@ -149,26 +122,13 @@ function openedit(id: number) {
     if(!target){
         return
     }
-    editForm.value = {id: target.id,en: target.en,zh: target.zh}
+    editId.value = target.id
+    editForm.value = {en: target.en,zh: target.zh}
     editVisible.value = true
 }
 async function saveedit() {
-    const target = wordsStore.words.find((t)=>t.id === editForm.value.id)
-    if(!target){
-        return
-    }
-    if(!editForm.value.en.trim()|| !editForm.value.zh.trim()) {
-        ElMessage.warning('英文和中文都不能为空')
-        if(!editForm.value.en.trim()) {
-            editForm.value.en = ''
-        }
-        if(!editForm.value.zh.trim()) {
-            editForm.value.zh = ''
-        }
-        return
-    }
     try{
-        const ok = await wordsStore.editword(editForm.value.id, editForm.value.en.trim(), editForm.value.zh.trim())
+        const ok = await wordsStore.editword(editId.value, editForm.value.en.trim(), editForm.value.zh.trim())
         if(!ok) {
             return
         }
@@ -191,19 +151,6 @@ async function toggleword(id: number) {
 }
 </script>
 <style scoped>
-.input-row {
-    display:flex;
-    gap:var(--space-sm);
-    margin-bottom:var(--space-lg);
-}
-.input-row .el-form-item {
-    flex:1;
-    margin-right: 0; 
-    margin-bottom: 0;
-}
-.input-row .el-form-item:last-child {
-    flex: 0 0 auto;     
-}
 .filter-row {
     display:flex;
     gap:var(--space-sm);
@@ -221,11 +168,6 @@ ul {
 }
 h1 {
     margin-bottom:var(--space-lg);
-}
-.edit-form {
-    display:flex;
-    flex-direction:column;
-    gap:var(--space-sm);
 }
 .tools-row {
     display:flex;
@@ -258,8 +200,5 @@ h1 {
     transition:transform 0.25s ease;
 }
 @media (max-width: 600px) {
-    .input-row {
-        flex-direction:column;
-    }
 }
 </style>
