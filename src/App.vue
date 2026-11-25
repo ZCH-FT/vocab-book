@@ -17,12 +17,20 @@ function syncOnReconnect() {
     wordsStore.refresh({ silent: true })
 }
 onMounted(() => {
+    // 页面被遮挡/恢复（切标签页、最小化）
     document.addEventListener('visibilitychange', syncOnReturn)
+    // 窗口重新获得焦点（多窗口并排时，可见性不变但焦点变了）
+    window.addEventListener('focus', syncOnReturn)
+    // 断网恢复
     window.addEventListener('online', syncOnReconnect)
+    // 窗口切换
+    window.addEventListener('focus', syncOnReturn)
 })
 onBeforeUnmount(() => {
     document.removeEventListener('visibilitychange', syncOnReturn)
+    window.removeEventListener('focus', syncOnReturn)
     window.removeEventListener('online', syncOnReconnect)
+    window.removeEventListener('focus', syncOnReturn)
 })
 </script>
 

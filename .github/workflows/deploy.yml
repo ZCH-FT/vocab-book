@@ -18,6 +18,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: 本次推送的提交清单
+        continue-on-error: true
+        env:
+          COMMITS: ${{ toJSON(github.event.commits) }}
+        run: |
+          commits=$(echo "$COMMITS" | jq -c 'if . == null then [] else . end')
+          n=$(echo "$commits" | jq 'length')
+          {
+            echo "## 本次推送携带 ${n} 个提交"
+            echo ""
+            echo "| # | Commit | 说明 |"
+            echo "|---|---|---|"
+            echo "$commits" | jq -r 'to_entries[] | "| \(.key + 1) | `\(.value.id[0:7])` | \(.value.message | split("\n")[0]) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
