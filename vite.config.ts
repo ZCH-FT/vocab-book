@@ -1,4 +1,4 @@
-import os from 'node:os'
+import { networkInterfaces } from 'node:os'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
@@ -19,7 +19,7 @@ function findLanIp(): string | null {
     return override
   }
   const candidates: { name: string; address: string }[] = []
-  for (const [name, infos] of Object.entries(os.networkInterfaces())) {
+  for (const [name, infos] of Object.entries(networkInterfaces())) {
     for (const info of infos ?? []) {
       if (info.family === 'IPv4' && !info.internal) {
         candidates.push({ name, address: info.address })
