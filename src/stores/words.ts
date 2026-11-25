@@ -2,29 +2,75 @@ import {ref} from 'vue'
 import {defineStore} from 'pinia'
 import type {Word} from '../types'
 import {request, ApiError} from '../api/http'
+
+// 静默对齐的最小间隔：切标签页可能很频繁，别每切一次就打一次接口
+const SILENT_MIN_INTERVAL = 15_000
+
 export const useWordsStore = defineStore('words',()=>{
     const words = ref<Word[]>([])
+    // loading：首次加载，决定要不要显示骨架屏
     const loading = ref(false)
+    // refreshing：静默对齐，不阻塞界面、不清空列表
+    const refreshing = ref(false)
     const loadError = ref<string | null>(null)
+    const lastSyncedAt = ref<number | null>(null)
     const adding = ref(false)
     const pendingIds = ref(new Set<number>())
+
+    // 同一个请求只允许在飞一次，后来的调用复用同一个 Promise
+    let inflight: Promise<void> | null = null
+
     function isPending(id: number) {
         return pendingIds.value.has(id)
-    }   
-    async function loadwords() {    
-        if(loading.value) {
-            return
-        }
-        loading.value = true
-        loadError.value = null
-        try {
-            words.value = await request<Word[]>('/word/list')
-        } catch (e) {
-            loadError.value = e instanceof ApiError ? e.message : '加载失败'
-        } finally {
-            loading.value = false
-        }
     }
+
+    /**
+     * 从服务端对齐一次数据。
+     * - 首次调用（本地还没有数据）：走 loading，失败写 loadError，界面显示骨架/错误页
+     * - silent: true：不显示骨架、不清空列表；失败就静默放弃，保留旧数据
+     */
+    function refresh(opts: {silent?: boolean} = {}): Promise<void> {
+        if (inflight) {
+            return inflight
+        }
+        const silent = opts.silent === true
+        if (silent) {
+            // 有写操作在飞的时候不对齐，否则会把正在删/改的词又拉回来
+            if (pendingIds.value.size > 0) {
+                return Promise.resolve()
+            }
+            if (lastSyncedAt.value !== null && Date.now() - lastSyncedAt.value < SILENT_MIN_INTERVAL) {
+                return Promise.resolve()
+            }
+        }
+        const firstLoad = words.value.length === 0 && lastSyncedAt.value === null
+        if (firstLoad) {
+            loading.value = true
+            loadError.value = null
+        } else if (silent) {
+            refreshing.value = true
+        }
+
+        inflight = (async () => {
+            try {
+                words.value = await request<Word[]>('/word/list')
+                lastSyncedAt.value = Date.now()
+                loadError.value = null
+            } catch (e) {
+                const message = e instanceof ApiError ? e.message : '加载失败'
+                if (firstLoad) {
+                    loadError.value = message
+                }
+                // 静默对齐失败：什么都不做，用户手上的数据还在
+            } finally {
+                loading.value = false
+                refreshing.value = false
+                inflight = null
+            }
+        })()
+        return inflight
+    }
+
     async function addword(en: string, zh: string): Promise<boolean> {
         if(adding.value) {
             return false
@@ -37,7 +83,7 @@ export const useWordsStore = defineStore('words',()=>{
             })
             words.value.push(created)
         } finally {
-            adding.value = false    
+            adding.value = false
         }
         return true
     }
@@ -104,7 +150,6 @@ export const useWordsStore = defineStore('words',()=>{
         }
         return true
     }
-    loadwords()
 
-    return {words,loadwords,addword,removeword,editword,setmastered,loading,loadError,adding,isPending}
+    return {words,refresh,addword,removeword,editword,setmastered,loading,refreshing,loadError,lastSyncedAt,adding,isPending}
 })
