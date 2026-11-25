@@ -28,8 +28,9 @@ export const useWordsStore = defineStore('words',()=>{
      * 从服务端对齐一次数据。
      * - 首次调用（本地还没有数据）：走 loading，失败写 loadError，界面显示骨架/错误页
      * - silent: true：不显示骨架、不清空列表；失败就静默放弃，保留旧数据
+     * - force: true：绕过 15 秒节流（用户主动下拉刷新时用），但仍受「有写操作在飞」约束
      */
-    function refresh(opts: {silent?: boolean} = {}): Promise<void> {
+    function refresh(opts: {silent?: boolean; force?: boolean} = {}): Promise<void> {
         if (inflight) {
             return inflight
         }
@@ -39,7 +40,7 @@ export const useWordsStore = defineStore('words',()=>{
             if (pendingIds.value.size > 0) {
                 return Promise.resolve()
             }
-            if (lastSyncedAt.value !== null && Date.now() - lastSyncedAt.value < SILENT_MIN_INTERVAL) {
+            if (!opts.force && lastSyncedAt.value !== null && Date.now() - lastSyncedAt.value < SILENT_MIN_INTERVAL) {
                 return Promise.resolve()
             }
         }

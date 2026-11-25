@@ -1,4 +1,12 @@
 <template>
+    <div
+        class="ptr"
+        :class="{ 'ptr--dragging': distance > 0 && !ptrRefreshing }"
+        :style="{ height: distance + 'px' }"
+    >
+        <span v-if="ptrRefreshing" class="ptr-spinner"></span>
+        <span class="ptr-text">{{ ptrText }}</span>
+    </div>
     <h1>我的单词本</h1>
     <WordForm v-model="addForm" :loading="wordsStore.adding" submit-text="添加" @submit="addword" />
     <template v-if="!wordsStore.loading && !wordsStore.loadError">
@@ -48,11 +56,27 @@ import AsyncState from '../components/AsyncState.vue'
 import {useWordsStore} from '../stores/words'
 import {showError} from '../utils/error'
 import WordForm from '../components/WordForm.vue'
+import {usePullToRefresh} from '../composables/usePullToRefresh'
 const wordsStore = useWordsStore()
 const addForm = ref({ en: '', zh: ''})
 const editForm = ref({en:'',zh:''})
 const editId = ref(0)
 const editVisible = ref(false)
+
+// 下拉刷新：用户主动发起，所以绕过节流；但仍然走 silent，列表不该消失
+const { distance, refreshing: ptrRefreshing, threshold } = usePullToRefresh(
+    () => wordsStore.refresh({ silent: true, force: true }),
+    { enabled: () => !editVisible.value && !wordsStore.loading }
+)
+const ptrText = computed(() => {
+    if (ptrRefreshing.value) {
+        return '正在同步…'
+    }
+    if (distance.value <= 0) {
+        return ''
+    }
+    return distance.value >= threshold ? '松开刷新' : '下拉刷新'
+})
 async function addword() {
     try{
         const created = await wordsStore.addword(addForm.value.en, addForm.value.zh)
@@ -151,6 +175,34 @@ async function toggleword(id: number) {
 }
 </script>
 <style scoped>
+.ptr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 0;
+    overflow: hidden;
+    font-size: 13px;
+    color: var(--color-text-muted);
+    transition: height .24s ease;
+}
+.ptr--dragging {
+    transition: none;
+}
+.ptr-text:empty {
+    display: none;
+}
+.ptr-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    animation: ptr-spin .8s linear infinite;
+}
+@keyframes ptr-spin {
+    to { transform: rotate(360deg); }
+}
 .filter-row {
     display:flex;
     gap:var(--space-sm);
