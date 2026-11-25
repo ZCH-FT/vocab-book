@@ -1,6 +1,6 @@
 <template>
     <h1>单词测验</h1>
-    <AsyncState :loading="wordsStore.loading" :error="wordsStore.loadError" @retry="wordsStore.loadwords()">
+    <AsyncState :loading="wordsStore.loading" :error="wordsStore.loadError" @retry="wordsStore.refresh()">
     <template v-if="wordsStore.words.length === 0">
         <div class="empty-state">
             <p class="empty-title">还没有可测验的单词</p>

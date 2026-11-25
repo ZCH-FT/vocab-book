@@ -23,7 +23,7 @@
             </el-radio-group>
         </div>
     </template>
-    <AsyncState :loading="wordsStore.loading" :error="wordsStore.loadError" @retry="wordsStore.loadwords()">
+    <AsyncState :loading="wordsStore.loading" :error="wordsStore.loadError" @retry="wordsStore.refresh()">
         <p v-if="sortedwords.length === 0">
             {{ total === 0 ? '没有单词，先添加一个' : '没有符合条件的单词' }}
         </p>
